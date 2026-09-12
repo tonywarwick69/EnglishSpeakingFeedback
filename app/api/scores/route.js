@@ -3,6 +3,24 @@ import { getScoresCollection } from "@/lib/mongodb";
 
 export const dynamic = "force-dynamic";
 
+// Set this to your exact production domain once you have one, e.g.
+// "https://your-app.vercel.app". Using "*" is fine here since this endpoint
+// has no auth/cookies and only handles a public leaderboard + score submission.
+const ALLOWED_ORIGIN = "*";
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders() });
+}
+
 // GET /api/scores — leaderboard, sorted by score desc, then correct desc, then earliest first
 export async function GET() {
   try {
@@ -24,12 +42,15 @@ export async function GET() {
       createdAt: doc.createdAt,
     }));
 
-    return NextResponse.json({ ok: true, items });
+    return NextResponse.json(
+      { ok: true, items },
+      { headers: corsHeaders() }
+    );
   } catch (err) {
     console.error("[GET /api/scores]", err);
     return NextResponse.json(
       { ok: false, error: "Không thể tải bảng xếp hạng. Vui lòng thử lại." },
-      { status: 500 }
+      { status: 500, headers: corsHeaders() }
     );
   }
 }
@@ -46,7 +67,7 @@ export async function POST(request) {
     if (!username) {
       return NextResponse.json(
         { ok: false, error: "Thiếu username." },
-        { status: 400 }
+        { status: 400, headers: corsHeaders() }
       );
     }
     if (
@@ -61,7 +82,7 @@ export async function POST(request) {
     ) {
       return NextResponse.json(
         { ok: false, error: "Dữ liệu điểm không hợp lệ." },
-        { status: 400 }
+        { status: 400, headers: corsHeaders() }
       );
     }
 
@@ -75,15 +96,15 @@ export async function POST(request) {
     };
     const result = await collection.insertOne(doc);
 
-    return NextResponse.json({
-      ok: true,
-      item: { id: String(result.insertedId), ...doc },
-    });
+    return NextResponse.json(
+      { ok: true, item: { id: String(result.insertedId), ...doc } },
+      { headers: corsHeaders() }
+    );
   } catch (err) {
     console.error("[POST /api/scores]", err);
     return NextResponse.json(
       { ok: false, error: "Không thể lưu kết quả. Vui lòng thử lại." },
-      { status: 500 }
+      { status: 500, headers: corsHeaders() }
     );
   }
 }
