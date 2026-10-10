@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "./LocaleProvider";
 
 export default function UsernameModal({ open, onSubmit, onClose, defaultValue = "" }) {
+  const { t } = useLocale();
   const [value, setValue] = useState(defaultValue);
   const [touched, setTouched] = useState(false);
 
@@ -27,15 +29,13 @@ export default function UsernameModal({ open, onSubmit, onClose, defaultValue = 
           </span>
           <div>
             <h3 className="font-display text-lg font-semibold text-white">
-              Nhập tên người chơi
+              {t("username.title")}
             </h3>
-            <p className="font-mono text-[11px] text-white/40">Enter your username</p>
           </div>
         </div>
 
         <p className="mb-4 text-sm text-white/60">
-          Tên này sẽ được lưu cùng điểm số của bạn vào hệ thống khi hoàn thành bài
-          luyện nói.
+          {t("username.description")}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -44,13 +44,13 @@ export default function UsernameModal({ open, onSubmit, onClose, defaultValue = 
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="VD: NguyenVanA"
+            placeholder={t("username.placeholder")}
             maxLength={20}
             className="focus-ring w-full rounded-xl border border-white/15 bg-void-900 px-4 py-3 text-white placeholder:text-white/30"
           />
           {touched && !isValid && (
             <p className="mt-2 text-xs text-pulse-400">
-              Tên cần từ 2 đến 20 ký tự.
+              {t("username.invalid")}
             </p>
           )}
 
@@ -61,14 +61,14 @@ export default function UsernameModal({ open, onSubmit, onClose, defaultValue = 
                 onClick={onClose}
                 className="focus-ring flex-1 rounded-full border border-white/15 px-4 py-2.5 text-sm text-white/70 transition hover:border-white/40 hover:text-white"
               >
-                Huỷ
+                {t("username.cancel")}
               </button>
             )}
             <button
               type="submit"
               className="focus-ring flex-1 rounded-full bg-signal-500 px-4 py-2.5 text-sm font-semibold text-void-950 transition hover:bg-signal-400"
             >
-              Bắt đầu
+              {t("username.submit")}
             </button>
           </div>
         </form>

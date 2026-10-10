@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSpeechRecognition, speak } from "@/hooks/useSpeechRecognition";
 import { pronunciationScore } from "@/utils/textMatch";
 import MicVisualizer from "./MicVisualizer";
+import { useLocale } from "./LocaleProvider";
 
 const levelBadge = {
   signal: "bg-signal-500/15 text-signal-400 border-signal-500/40",
@@ -11,13 +12,8 @@ const levelBadge = {
   pulse: "bg-pulse-500/15 text-pulse-400 border-pulse-500/40",
 };
 
-const typeLabel = {
-  word: "TỪ ĐƠN",
-  phrase: "CỤM TỪ",
-  sentence: "CÂU HOÀN CHỈNH",
-};
-
 export default function QuestionCard({ question, index, total, onAnswered }) {
+  const { t, locale } = useLocale();
   const { isSupported, listening, transcript, error, start, stop, reset } =
     useSpeechRecognition({ lang: "en-US" });
 
@@ -32,8 +28,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question.id]);
 
-  // When recognition finishes (listening goes false) and we have a transcript
-  // that hasn't been graded yet, grade it.
+  // When recognition finishes and we have an ungraded transcript, grade it.
   useEffect(() => {
     if (!listening && transcript && !result) {
       const ratio = pronunciationScore(transcript, question.target);
@@ -43,7 +38,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listening, transcript]);
 
-  // If recognition ended with no speech detected at all
+  // Recognition ended with an error / no speech detected
   useEffect(() => {
     if (!listening && error && !result) {
       setResult({ correct: false, spoken: "", ratio: 0, err: error });
@@ -73,6 +68,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
 
   const badgeClass = levelBadge[question.level.color];
   const micState = result ? (result.correct ? "correct" : "incorrect") : "idle";
+  const instructionKey = question.instructionKey || question.type;
 
   return (
     <div className="w-full rounded-2xl border border-white/10 bg-void-800/70 p-6 sm:p-8 backdrop-blur-sm">
@@ -80,14 +76,20 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
         <span
           className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wider ${badgeClass}`}
         >
-          {question.level.label} · {question.level.sub}
+          {t(`levels.${question.level.key}.label`)} · {t(`levels.${question.level.key}.sub`)}
         </span>
         <span className="font-mono text-xs text-white/40">
-          Câu {index + 1}/{total} · {typeLabel[question.type]}
+          {t("question.counter", {
+            current: index + 1,
+            total,
+            type: t(`question.type.${question.type}`),
+          })}
         </span>
       </div>
 
-      <p className="mt-5 text-center text-sm text-white/60">{question.instruction}</p>
+      <p className="mt-5 text-center text-sm text-white/60">
+        {t(`question.instruction.${instructionKey}`)}
+      </p>
 
       <div className="mt-3 text-center">
         <h2 className="break-words font-display text-3xl font-semibold text-white sm:text-4xl">
@@ -97,17 +99,14 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
           {question.ipa && (
             <span className="font-mono text-signal-400">{question.ipa}</span>
           )}
-          <span className="text-white/50">{question.vi}</span>
+          {locale === "vi" && <span className="text-white/50">{question.vi}</span>}
         </div>
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-4">
         {!isSupported ? (
-          <div className="rounded-xl border border-pulse-500/40 bg-pulse-500/10 px-4 py-3 text-center text-sm text-pulse-300">
-            Trình duyệt này chưa hỗ trợ nhận diện giọng nói.
-            <br />
-            Vui lòng dùng <strong>Google Chrome</strong> hoặc{" "}
-            <strong>Microsoft Edge</strong> trên máy tính / Android.
+          <div className="rounded-xl border border-pulse-500/40 bg-pulse-500/10 px-4 py-3 text-center text-sm text-pulse-400">
+            {t("question.unsupported")}
           </div>
         ) : (
           <>
@@ -120,7 +119,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
                 className="focus-ring flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:border-signal-400/60 hover:text-white"
               >
                 <SpeakerIcon />
-                Nghe mẫu
+                {t("question.listen")}
               </button>
 
               <button
@@ -128,19 +127,21 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
                 onClick={handleMicClick}
                 className={`focus-ring rounded-full px-5 py-2 text-sm font-semibold transition ${
                   listening
-                    ? "bg-pulse-500 text-white hover:bg-pulse-600"
+                    ? "bg-pulse-500 text-white hover:bg-pulse-400"
                     : "bg-signal-500 text-void-950 hover:bg-signal-400"
                 }`}
               >
-                {listening ? "Dừng ghi âm" : attempt > 0 && result ? "Nói lại" : "Bắt đầu nói"}
+                {listening
+                  ? t("question.stop")
+                  : attempt > 0 && result
+                  ? t("question.again")
+                  : t("question.start")}
               </button>
             </div>
 
             <div className="min-h-[3.5rem] w-full text-center">
               {listening && (
-                <p className="font-mono text-xs text-signal-400">
-                  Đang nghe... hãy đọc to và rõ ràng
-                </p>
+                <p className="font-mono text-xs text-signal-400">{t("question.listening")}</p>
               )}
 
               {result && (
@@ -150,10 +151,12 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
                       result.correct ? "text-signal-400" : "text-pulse-400"
                     }`}
                   >
-                    {result.correct ? "✓ Phát âm chính xác!" : "✗ Chưa đúng, thử lại nhé"}
+                    {result.correct ? t("question.correct") : t("question.incorrect")}
                   </p>
                   <p className="font-mono text-xs text-white/40">
-                    Hệ thống nghe được: “{result.spoken || "(không nghe rõ)"}”
+                    {t("question.heard", {
+                      text: result.spoken || t("question.heardNone"),
+                    })}
                   </p>
                 </div>
               )}
@@ -171,7 +174,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
                 onClick={handleMicClick}
                 className="focus-ring rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:border-white/40 hover:text-white"
               >
-                Thử lại
+                {t("question.retry")}
               </button>
             )}
             <button
@@ -179,7 +182,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
               onClick={handleNext}
               className="focus-ring rounded-full bg-white px-6 py-2 text-sm font-semibold text-void-950 transition hover:bg-white/90"
             >
-              {index + 1 === total ? "Xem kết quả" : "Câu tiếp theo"}
+              {index + 1 === total ? t("question.seeResults") : t("question.next")}
             </button>
           </>
         )}
@@ -196,7 +199,7 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
             }
             className="focus-ring rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:border-white/40 hover:text-white"
           >
-            Bỏ qua câu này
+            {t("question.skip")}
           </button>
         )}
       </div>
@@ -207,18 +210,8 @@ export default function QuestionCard({ question, index, total, onAnswered }) {
 function SpeakerIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M4 9v6h4l5 4V5L8 9H4z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16.5 8.5a5 5 0 010 7"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+      <path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M16.5 8.5a5 5 0 010 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

@@ -4,14 +4,18 @@ import { useEffect, useState } from "react";
 import Tabs from "@/components/Tabs";
 import Dashboard from "@/components/Dashboard";
 import Scoreboard from "@/components/Scoreboard";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function Home() {
+  const { t, locale } = useLocale();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [scoreboardRefreshKey, setScoreboardRefreshKey] = useState(0);
 
   useEffect(() => {
-    document.title = "Speaking Lab · Unit 1 My New School";
-  }, []);
+    document.title = t("app.docTitle");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-void-950">
@@ -19,13 +23,17 @@ export default function Home() {
       <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-signal-500/10 blur-[120px]" />
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col items-center px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mb-4 flex w-full justify-end">
+          <LanguageSwitcher />
+        </div>
+
         <header className="mb-8 flex w-full flex-col items-center gap-6 text-center">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-signal-400/80">
-              Global Success · Grade 6
+              {t("app.eyebrow")}
             </p>
             <h1 className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">
-              Speaking Lab — My New School
+              {t("app.title")}
             </h1>
           </div>
           <Tabs active={activeTab} onChange={setActiveTab} />
@@ -43,7 +51,7 @@ export default function Home() {
         </section>
 
         <footer className="mt-12 text-center font-mono text-[11px] text-white/25">
-          Tiếng Anh 6 — Global Success · Unit 1: My New School · Speaking practice
+          {t("app.footer")}
         </footer>
       </div>
     </main>

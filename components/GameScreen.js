@@ -4,8 +4,10 @@ import { useState } from "react";
 import { QUESTIONS } from "@/data/questions";
 import ProgressTrack from "./ProgressTrack";
 import QuestionCard from "./QuestionCard";
+import { useLocale } from "./LocaleProvider";
 
 export default function GameScreen({ username, onFinish }) {
+  const { t } = useLocale();
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
 
@@ -26,9 +28,9 @@ export default function GameScreen({ username, onFinish }) {
     <div className="w-full max-w-2xl">
       <div className="mb-5 flex items-center justify-between">
         <p className="font-mono text-xs text-white/40">
-          NGƯỜI CHƠI: <span className="text-signal-400">{username}</span>
+          {t("game.player")}: <span className="text-signal-400">{username}</span>
         </p>
-        <p className="font-mono text-xs text-white/40">SPEAKING LAB · UNIT 1</p>
+        <p className="font-mono text-xs text-white/40">{t("game.header")}</p>
       </div>
 
       <ProgressTrack currentIndex={index} answers={answers} />

@@ -1,9 +1,12 @@
 "use client";
 
+import { useLocale } from "./LocaleProvider";
+
 export default function Tabs({ active, onChange }) {
+  const { t } = useLocale();
   const tabs = [
-    { key: "dashboard", label: "Dashboard", sub: "Luyện nói" },
-    { key: "scoreboard", label: "Scoreboard", sub: "Bảng xếp hạng" },
+    { key: "dashboard", label: t("tabs.dashboard") },
+    { key: "scoreboard", label: t("tabs.scoreboard") },
   ];
 
   return (
@@ -22,13 +25,6 @@ export default function Tabs({ active, onChange }) {
             }`}
           >
             {tab.label}
-            <span
-              className={`ml-1.5 hidden font-mono text-[10px] sm:inline ${
-                isActive ? "text-void-950/60" : "text-white/30"
-              }`}
-            >
-              {tab.sub}
-            </span>
           </button>
         );
       })}

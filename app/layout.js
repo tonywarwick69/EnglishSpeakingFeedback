@@ -1,4 +1,5 @@
 import "./globals.css";
+import { LocaleProvider } from "@/components/LocaleProvider";
 
 export const metadata = {
   title: "Speaking Lab · Unit 1 My New School",
@@ -17,7 +18,9 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

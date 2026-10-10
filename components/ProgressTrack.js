@@ -1,14 +1,17 @@
 "use client";
 
-import { QUESTIONS } from "@/data/questions";
+import { QUESTIONS, LEVELS } from "@/data/questions";
+import { useLocale } from "./LocaleProvider";
 
 const colorMap = {
-  signal: { bg: "bg-signal-400", text: "text-signal-400", border: "border-signal-400" },
-  amber: { bg: "bg-amber-400", text: "text-amber-400", border: "border-amber-400" },
-  pulse: { bg: "bg-pulse-500", text: "text-pulse-500", border: "border-pulse-500" },
+  signal: { bg: "bg-signal-400", text: "text-signal-400" },
+  amber: { bg: "bg-amber-400", text: "text-amber-400" },
+  pulse: { bg: "bg-pulse-500", text: "text-pulse-500" },
 };
 
 export default function ProgressTrack({ currentIndex, answers }) {
+  const { t } = useLocale();
+
   return (
     <div className="w-full">
       <div className="flex gap-1.5">
@@ -33,9 +36,15 @@ export default function ProgressTrack({ currentIndex, answers }) {
         })}
       </div>
       <div className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-wider text-white/40">
-        <span className={colorMap.signal.text}>Nhận biết</span>
-        <span className={colorMap.amber.text}>Thông hiểu</span>
-        <span className={colorMap.pulse.text}>Vận dụng cao</span>
+        <span className={colorMap[LEVELS.RECOGNITION.color].text}>
+          {t("levels.recognition.label")}
+        </span>
+        <span className={colorMap[LEVELS.COMPREHENSION.color].text}>
+          {t("levels.comprehension.label")}
+        </span>
+        <span className={colorMap[LEVELS.APPLICATION.color].text}>
+          {t("levels.application.label")}
+        </span>
       </div>
     </div>
   );
