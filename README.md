@@ -84,3 +84,5 @@ Trong MongoDB Atlas, nhớ mở **Network Access** cho phép kết nối từ `0
 Danh sách 10 câu hỏi nằm trong `data/questions.js`, có thể chỉnh sửa từ/cụm
 từ/câu, IPA, nghĩa tiếng Việt, và ngưỡng chấm điểm (`matchThreshold`) cho từng
 câu.
+
+Implement API Speak grading support (still work-in-progress)

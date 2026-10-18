@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Tabs from "@/components/Tabs";
 import Dashboard from "@/components/Dashboard";
 import Scoreboard from "@/components/Scoreboard";
+import SpeakingExercise from "@/components/SpeakingExercise";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -40,14 +41,14 @@ export default function Home() {
         </header>
 
         <section className="flex w-full flex-1 flex-col items-center">
-          {activeTab === "dashboard" ? (
+          {activeTab === "dashboard" && (
             <Dashboard
               onScoreSaved={() => setScoreboardRefreshKey((k) => k + 1)}
               onGoToScoreboard={() => setActiveTab("scoreboard")}
             />
-          ) : (
-            <Scoreboard refreshKey={scoreboardRefreshKey} />
           )}
+          {activeTab === "speaking" && <SpeakingExercise />}
+          {activeTab === "scoreboard" && <Scoreboard refreshKey={scoreboardRefreshKey} />}
         </section>
 
         <footer className="mt-12 text-center font-mono text-[11px] text-white/25">

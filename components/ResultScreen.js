@@ -71,6 +71,7 @@ export default function ResultScreen({
                 }`}
               >
                 {a?.correct ? t("result.ok") : t("result.wrong")}
+                {typeof a?.score === "number" ? ` · ${Math.round(a.score)}` : ""}
               </span>
             </div>
           );
