@@ -7,7 +7,10 @@ import GameScreen from "./GameScreen";
 import ResultScreen from "./ResultScreen";
 import { useLocale } from "./LocaleProvider";
 
-export default function Dashboard({ onScoreSaved, onGoToScoreboard }) {
+export default function Dashboard({
+  onScoreSaved = () => {},
+  onGoToScoreboard = () => {},
+}) {
   const { t } = useLocale();
   const [phase, setPhase] = useState("intro"); // intro | playing | result
   const [username, setUsername] = useState("");

@@ -7,11 +7,19 @@ import MicVisualizer from "./MicVisualizer";
 import SpeakingFeedback from "./SpeakingFeedback";
 import { formatTime } from "@/utils/formatTime";
 import { useLocale } from "./LocaleProvider";
+import UsernameModal from "./UsernameModal";
+import { saveSpeakingResult } from "@/utils/api";
 
 export default function SpeakingExercise() {
   const { t, locale } = useLocale();
   const sp = useAzureSpeaking({ maxSeconds: MAX_SPEAK_SECONDS });
   const [prepLeft, setPrepLeft] = useState(null); // null = not preparing
+  
+  const [phase, setPhase] = useState("intro"); // intro | playing | result
+  const [showModal, setShowModal] = useState(false);
+  const [username, setUsername] = useState(
+    () => window.localStorage.getItem("speaking_lab_username") || ""
+  );
 
   // Preparation countdown
   useEffect(() => {
@@ -21,15 +29,29 @@ export default function SpeakingExercise() {
   }, [prepLeft]);
 
   const startSpeaking = () => {
+    if (username && username !== "test") {
+      setPhase("playing");
+    } else {
+      setShowModal(true);
+    }
     setPrepLeft(null);
     sp.start();
+    console.log("startSpeaking called: Modal open:", showModal, "Username:", username);
   };
 
   const tryAgain = () => {
+    
+    setShowModal(false);
+    setPhase("intro");
+    saveSpeakingResult(username, sp.result);
     sp.reset();
     setPrepLeft(null);
   };
-
+  function handleCancelClick() {
+    sp.cancel();
+    setPrepLeft(null);
+    setPhase("intro");
+  }
   if (sp.status === "done" && sp.result) {
     return <SpeakingFeedback result={sp.result} onTryAgain={tryAgain} />;
   }
@@ -42,9 +64,25 @@ export default function SpeakingExercise() {
       ? t("speaking.serviceError")
       : t("question.genericError")
     : null;
+  const handleUsernameSubmit = (name) => {
+    setUsername(name);
+    try {
+      window.localStorage.setItem("speaking_lab_username", name);
+    } catch (_) {
+      /* localStorage unavailable — non-blocking */
+    }
+    setShowModal(false);
+    setPhase("playing");
+  };
 
   return (
     <div className="w-full max-w-2xl space-y-5">
+       <UsernameModal
+              open={showModal}
+              defaultValue={username}
+              onSubmit={handleUsernameSubmit}
+              onClose={username ? () => setShowModal(false) : undefined}
+            />
       {/* Cue card */}
       <div className="rounded-2xl border border-white/10 bg-void-800/70 p-6 backdrop-blur-sm sm:p-8">
         <span className="inline-flex items-center rounded-full border border-signal-500/30 bg-signal-500/10 px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-signal-400">
@@ -111,13 +149,10 @@ export default function SpeakingExercise() {
             )}
 
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={startSpeaking}
-                className="focus-ring rounded-full bg-signal-500 px-7 py-2.5 text-sm font-semibold text-void-950 transition hover:bg-signal-400"
-              >
-                {t("speaking.startNow")}
-              </button>
+              {phase === "intro" && ( 
+                <IntroHero username={username} onStart={startSpeaking} />
+              )}
+            
               {prepLeft === null ? (
                 <button
                   type="button"
@@ -177,7 +212,7 @@ export default function SpeakingExercise() {
               {sp.status !== "processing" && (
                 <button
                   type="button"
-                  onClick={sp.cancel}
+                  onClick={handleCancelClick}
                   className="focus-ring rounded-full border border-white/15 px-6 py-2.5 text-sm text-white/70 transition hover:border-white/40 hover:text-white"
                 >
                   {t("speaking.cancel")}
@@ -188,5 +223,17 @@ export default function SpeakingExercise() {
         )}
       </div>
     </div>
+  );
+}
+function IntroHero({ username, onStart }) {
+  const { t } = useLocale();
+  return (
+     <button
+        type="button"
+        onClick={onStart}
+        className="focus-ring rounded-full bg-signal-500 px-7 py-2.5 text-sm font-semibold text-void-950 transition hover:bg-signal-400"
+      >
+        {t("speaking.startNow")}
+      </button>
   );
 }
